@@ -11,7 +11,7 @@ serverName = 'localhost'  # server hostname or IP address
 serverPort = PORT_NUMBER  # arbitrary port > 1023 (source: previous assignment instructions) matching server
 
 # Choose a message to send to the server specified above
-message = 'GET /imaginary-page.html HTTP/1.1\r\nHost:example.example\r\n\r\n'
+message = input('[client] type message to server... ')
 
 # Create a client socket,
 # using default address family (SOCK_STREAM means to use TCP)

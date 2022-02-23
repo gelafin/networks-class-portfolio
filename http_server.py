@@ -11,11 +11,6 @@ PORT_NUMBER = 8011
 serverName = 'localhost'  # server hostname or IP address
 serverPort = PORT_NUMBER  # arbitrary port > 1023 (source: previous assignment instructions) matching client
 
-# Choose a message to send to clients who connect
-res_message = "HTTP/1.1 200 OK\r\n" \
-              "Content-Type: text/html; charset=UTF-8\r\n\r\n" \
-              "<html>Congratulations! You found me!</html>\r\n"
-
 # Create a server socket,
 # Using default address family (SOCK_STREAM means to use TCP)
 server_socket = socket(family=AF_INET, type=SOCK_STREAM)
@@ -40,6 +35,10 @@ while True:
     # Print this socket's new request
     print(f'[server]\nConnected by {serverName}:{serverPort}')
     print(f'\n[server]\nReceived: {req_message_raw}')
+
+    # Get a message to send to the client
+    res_message = input('[server] type response... ')
+
     print(f'\n[server]\nSending response: {res_message}')
 
     # Send the response message
