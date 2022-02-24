@@ -52,7 +52,8 @@ def receive_next_chunk(connection_socket: socket) -> dict:
 
 def handle_new_connection(connection_socket: socket):
     """
-    Interacts with another until receiving a quit message from the other host
+    Interacts with another until receiving a quit message from the other host.
+    Starts interaction by receiving.
     :param connection_socket: socket object representing the connection
     """
     # Print this socket's configuration data
