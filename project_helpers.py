@@ -3,6 +3,7 @@
 
 from socket import socket
 from project_constants import *
+from math import ceil
 
 
 def handle_new_message(incoming_message: str, connection_socket: socket):
@@ -20,34 +21,73 @@ def handle_new_message(incoming_message: str, connection_socket: socket):
     print(f'Sending response: {res_message}')
 
     # Send the response message
-    # TODO: make a helper capable of chunking responses
-    connection_socket.send(res_message.encode())
+    send_message(res_message, connection_socket)
 
 
-def receive_next_chunk(connection_socket: socket) -> dict:
+def send_message(outgoing_message: str, connection_socket: socket):
     """
-    Receives the next chunk of data from the given socket
-    and parses the data according to the made-up GELA372 protocol.
-    In GELA372, the first byte of every packet is an ID number,
-    and a receiver accumulates chunks until detecting a change in ID number.
+    Sends a given message through a given socket,
+    Segmenting data to respect window size (known through a constant global buffer size).
+    Segmentation is done according to the made-up GELA372 protocol.
+    In GELA372, the first byte of every packet is a "last packet" flag,
+    and a receiver accumulates packets until detecting a flag of 1.
+    :param outgoing_message: message to send to the other host
     :param connection_socket: socket object representing the connection
-    :return: chunk data in the form
-             {'id': str, 'payload': str}
     """
-    # Receive a chunk of raw byte message and decode it into a string
-    req_message_chunk = connection_socket.recv(BUFFER_SIZE).decode()
+    # Determine number of packets
+    # (sacrificing the first byte of each packet to the "last packet" flag
+    # and rounding up because there are no partial packets).
+    payload_size = BUFFER_SIZE - 1
+    packet_count = ceil(len(outgoing_message) / payload_size)
 
-    # Check message ID using the GELA372 protocol.
-    chunk_id = req_message_chunk[0:1]
-    chunk_payload = req_message_chunk[1:len(req_message_chunk)]
+    # Send all but the last packet
+    for packet_index in range(packet_count - 1):
+        # Use the first packet byte for the flag, which is 0 in this loop
+        last_packet_flag = GELA372_LAST_PACKET_FALSE
+
+        # Get the next segment of the message
+        slice_start = packet_index * payload_size
+        slice_end = slice_start + payload_size
+        message_payload = outgoing_message[slice_start:slice_end]
+
+        # Assemble the packet in GELA372 format
+        packet_raw_string = last_packet_flag + message_payload
+
+        # Send this packet
+        connection_socket.send(packet_raw_string.encode())
+
+    # Send the last packet, with the "last packet" flag set
+    last_packet_flag = GELA372_LAST_PACKET_TRUE
+    message_payload = outgoing_message[-payload_size:len(outgoing_message)]
+    packet_raw_string = last_packet_flag + message_payload
+    connection_socket.send(packet_raw_string.encode())
+
+
+def receive_next_packet(connection_socket: socket) -> dict:
+    """
+    Receives the next packet of data from the given socket
+    and parses the data according to the made-up GELA372 protocol.
+    In GELA372, the first byte of every packet is a "last packet" flag,
+    and a receiver accumulates packets until detecting a flag of 1.
+    :param connection_socket: socket object representing the connection
+    :return: packet data in the form
+             {'is_last_packet': bool, 'payload': str}
+    """
+    # Receive a packet of raw byte message and decode it into a string
+    req_message_packet = connection_socket.recv(BUFFER_SIZE).decode()
+
+    # Check packet flag using the GELA372 protocol.
+    last_packet_flag = req_message_packet[0:1]
+    is_last_packet = True if last_packet_flag == 1 else False
+    packet_payload = req_message_packet[1:len(req_message_packet)]
 
     # Wrap up the extracted data, nice and neat
-    chunk_data_out = {
-        'id': chunk_id,
-        'payload': chunk_payload
+    packet_data_out = {
+        'is_last_packet': is_last_packet,
+        'payload': packet_payload
     }
 
-    return chunk_data_out
+    return packet_data_out
 
 
 def handle_new_connection(connection_socket: socket):
@@ -59,18 +99,17 @@ def handle_new_connection(connection_socket: socket):
     # Print this socket's configuration data
     print(f'Connected at {SERVER_NAME}:{SERVER_PORT}. Type {QUIT_MESSAGE} to quit.')
 
-    # Initialize the first message's data with the first chunk's data
-    chunk_data = receive_next_chunk(connection_socket)
-    chunk_id = chunk_data['id']
-    chunk_payload = chunk_data['payload']
-    incoming_message_id = chunk_id
-    incoming_message_payload = chunk_payload
+    # Initialize the first message's data with the first packet's data
+    packet_data = receive_next_packet(connection_socket)
+    is_last_packet = packet_data['is_last_packet']
+    packet_payload = packet_data['payload']
+    incoming_message_payload = packet_payload
 
-    # Receive and reply to messages in chunks from client until a message matches the quit message
+    # Receive and reply to messages in packets from client until a message matches the quit message
     while incoming_message_payload != QUIT_MESSAGE:
-        # If this chunk is the first of a new message, process the message that just finished transmitting.
+        # If this packet is the first of a new message, process the message that just finished transmitting.
         # The request message payload is now completely received.
-        if chunk_id != incoming_message_id and len(incoming_message_payload) > 0:
+        if is_last_packet is True:
             # Check for quit message
             if incoming_message_payload == QUIT_MESSAGE:
                 return
@@ -78,13 +117,13 @@ def handle_new_connection(connection_socket: socket):
             handle_new_message(incoming_message_payload, connection_socket)
 
             # Reset to track the new message
-            incoming_message_id = chunk_id
+            is_last_packet = False
             incoming_message_payload = ''
 
-        # Receive a chunk of data from the other host
-        chunk_data = receive_next_chunk(connection_socket)
-        chunk_id = chunk_data['id']
-        chunk_payload = chunk_data['payload']
+        # Receive a packet of data from the other host
+        packet_data = receive_next_packet(connection_socket)
+        packet_id = packet_data['id']
+        packet_payload = packet_data['payload']
 
-        # Add this chunk's payload to the message text
-        incoming_message_payload += chunk_payload
+        # Add this packet's payload to the message text
+        incoming_message_payload += packet_payload

@@ -14,3 +14,7 @@ BUFFER_SIZE = 1024
 SERVER_NAME = 'localhost'  # server hostname or IP address
 SERVER_PORT = PORT_NUMBER  # arbitrary port > 1023 (source: previous assignment instructions) matching client
 
+# In GELA372, the first byte of every packet is a "last packet" flag,
+# and a receiver accumulates packets until detecting a flag of 1.
+GELA372_LAST_PACKET_FALSE = '0'
+GELA372_LAST_PACKET_TRUE = '1'
