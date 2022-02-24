@@ -31,6 +31,8 @@ def main():
         # Close the connection
         connection_socket.close()
 
+        print('connection closed. Listening for a new connection request.')
+
 
 if __name__ == '__main__':
     main()

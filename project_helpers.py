@@ -6,22 +6,25 @@ from project_constants import *
 from math import ceil
 
 
-def handle_new_message(incoming_message: str, connection_socket: socket):
+def handle_new_message(incoming_message: str, connection_socket: socket) -> str:
     """
     Displays the received message, prompts for a reply message,
     and sends the reply message through the given socket.
     :param incoming_message: message received from the other host
     :param connection_socket: socket object representing the connection
+    :return: a copy of the new outgoing message
     """
     print(f'Received: {incoming_message}')
 
     # Get a message to send to the client
-    res_message = input('Type response... ')
+    outgoing_message = input('Type response... ')
 
-    print(f'Sending response: {res_message}')
+    print(f'Sending response: {outgoing_message}')
 
     # Send the response message
-    send_message(res_message, connection_socket)
+    send_message(outgoing_message, connection_socket)
+
+    return outgoing_message
 
 
 def send_message(outgoing_message: str, connection_socket: socket):
@@ -96,7 +99,7 @@ def receive_next_packet(connection_socket: socket) -> dict:
 
 def handle_new_connection(connection_socket: socket):
     """
-    Interacts with another until receiving a quit message from the other host.
+    Interacts with another host until sending or receiving a quit message.
     Starts interaction by receiving.
     :param connection_socket: socket object representing the connection
     """
@@ -118,7 +121,10 @@ def handle_new_connection(connection_socket: socket):
             if incoming_message_payload == QUIT_MESSAGE:
                 return
 
-            handle_new_message(incoming_message_payload, connection_socket)
+            outgoing_message = handle_new_message(incoming_message_payload, connection_socket)
+
+            if outgoing_message == QUIT_MESSAGE:
+                return
 
             # Reset to track the new message
             incoming_message_payload = ''

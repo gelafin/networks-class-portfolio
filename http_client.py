@@ -19,14 +19,12 @@ def main():
     # Connect to the server specified above
     client_socket.connect((SERVER_NAME, SERVER_PORT))
 
-    incoming_message = ''
-    while incoming_message != QUIT_MESSAGE and outgoing_message != QUIT_MESSAGE:
-        # Send message to server
-        print(f'Sending first message:\n{outgoing_message}')
-        send_message(outgoing_message, client_socket)
+    # Send message to server
+    print(f'Sending first message:\n{outgoing_message}')
+    send_message(outgoing_message, client_socket)
 
-        # Interact with the server
-        handle_new_connection(client_socket)
+    # Interact with the server until sending or receiving a quit message
+    handle_new_connection(client_socket)
 
     # Close socket connection
     client_socket.close()
