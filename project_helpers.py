@@ -76,10 +76,14 @@ def receive_next_packet(connection_socket: socket) -> dict:
     # Receive a packet of raw byte message and decode it into a string
     req_message_packet = connection_socket.recv(BUFFER_SIZE).decode()
 
-    # Check packet flag using the GELA372 protocol.
+    # Check last packet flag using the GELA372 protocol.
     last_packet_flag = req_message_packet[0:1]
-    is_last_packet = True if last_packet_flag == 1 else False
+
+    if last_packet_flag != GELA372_LAST_PACKET_FALSE and last_packet_flag != GELA372_LAST_PACKET_TRUE:
+        raise Exception('received invalid packet flag')
+
     packet_payload = req_message_packet[1:len(req_message_packet)]
+    is_last_packet = True if last_packet_flag == GELA372_LAST_PACKET_TRUE else False
 
     # Wrap up the extracted data, nice and neat
     packet_data_out = {
@@ -117,12 +121,11 @@ def handle_new_connection(connection_socket: socket):
             handle_new_message(incoming_message_payload, connection_socket)
 
             # Reset to track the new message
-            is_last_packet = False
             incoming_message_payload = ''
 
         # Receive a packet of data from the other host
         packet_data = receive_next_packet(connection_socket)
-        packet_id = packet_data['id']
+        is_last_packet = packet_data['is_last_packet']
         packet_payload = packet_data['payload']
 
         # Add this packet's payload to the message text

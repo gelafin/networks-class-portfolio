@@ -4,7 +4,7 @@
 
 from socket import *
 from project_constants import *
-from project_helpers import handle_new_connection
+from project_helpers import *
 
 
 def main():
@@ -23,7 +23,7 @@ def main():
     while incoming_message != QUIT_MESSAGE and outgoing_message != QUIT_MESSAGE:
         # Send message to server
         print(f'Sending first message:\n{outgoing_message}')
-        client_socket.send(outgoing_message.encode())
+        send_message(outgoing_message, client_socket)
 
         # Interact with the server
         handle_new_connection(client_socket)
