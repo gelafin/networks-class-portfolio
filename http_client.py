@@ -3,8 +3,10 @@
 # used starter code and concepts from "Computer Networking: A Top-Down Approach" by James F. Kurose and Keith Ross
 
 from socket import *
-from project_constants import *
-from project_helpers import play_game, send_message, prompt_next_move
+from socket_constants import *
+from game_constants import *
+from socket_helpers import send_message
+from game_helpers import RPSGameManager
 
 
 def main():
@@ -19,18 +21,21 @@ def main():
     # Print this socket's configuration data
     print(f'Connected at {SERVER_NAME}:{SERVER_PORT}. Type {QUIT_MESSAGE} to quit.')
 
-    # Select a stage
-    stage_selection_message = input(STAGE_CHOICE_PROMPT)
+    # Instantiate the game manager, which tracks state
+    game_manager = RPSGameManager()
 
-    # Communicate stage selection to the other player
-    send_message(stage_selection_message, client_socket)
+    # Select a stage
+    stage_selection = input(STAGE_CHOICE_PROMPT)
+    game_manager.set_stage(stage_selection)
 
     # Start the game by taking the first turn
-    first_move = prompt_next_move()
-    send_message(first_move, client_socket)
+    first_move = game_manager.prompt_next_move()
+    game_manager.set_player_move('1', first_move)
+    outgoing_message = game_manager.encode_state()
+    send_message(outgoing_message, client_socket)
 
     # Interact with the server until sending or receiving a quit message
-    play_game(client_socket)
+    game_manager.play_game(client_socket)
 
     # Close socket connection
     client_socket.close()

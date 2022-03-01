@@ -3,8 +3,9 @@
 # used starter code and concepts from "Computer Networking: A Top-Down Approach" by James F. Kurose and Keith Ross
 
 from socket import *
-from project_constants import *
-from project_helpers import play_game
+from socket_constants import *
+from game_constants import *
+from game_helpers import RPSGameManager
 
 
 def main():
@@ -28,11 +29,14 @@ def main():
         # Print this socket's configuration data
         print(f'Connected at {SERVER_NAME}:{SERVER_PORT}. Type {QUIT_MESSAGE} to quit.')
 
+        # Instantiate the game manager, which tracks state
+        game_manager = RPSGameManager()
+
         # Print a server-specific notice
         print('Waiting for player 1 to select a stage...')
 
         # Interact with the new connection
-        play_game(connection_socket)
+        game_manager.play_game(connection_socket)
 
         # Close the connection
         connection_socket.close()
