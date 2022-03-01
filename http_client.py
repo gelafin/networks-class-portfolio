@@ -4,7 +4,7 @@
 
 from socket import *
 from project_constants import *
-from project_helpers import *
+from project_helpers import handle_new_connection, send_message
 
 
 def main():
