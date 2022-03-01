@@ -25,6 +25,12 @@ def main():
         # Accept a new connection
         connection_socket, client_address = server_socket.accept()
 
+        # Print this socket's configuration data
+        print(f'Connected at {SERVER_NAME}:{SERVER_PORT}. Type {QUIT_MESSAGE} to quit.')
+
+        # Print a server-specific notice
+        print('Waiting for message...')
+
         # Interact with the new connection
         handle_new_connection(connection_socket)
 
