@@ -6,6 +6,13 @@ from project_constants import *
 from math import ceil
 
 
+def handle_endgame():
+    """
+    Shows final score
+    """
+    pass
+
+
 def set_stage(stage: str):
     """
     Updates player 2 to use the stage selected by player 1,
@@ -16,8 +23,6 @@ def set_stage(stage: str):
     print(f'On {stage}, you both start with the following move options:')
     print(STAGES[stage])
 
-    return
-
 
 def prompt_next_move() -> str:
     """
@@ -25,6 +30,7 @@ def prompt_next_move() -> str:
     :return: current player's move selection
     """
     # Show both players' remaining move options
+    # TODO: track remaining
     print('Your remaining options:\n\tR: placeholder\n\tP: placeholder\n\tS: placeholder')
     print('Opponent\'s remaining options:\n\tR: placeholder\n\tP: placeholder\n\tS: placeholder')
 
@@ -42,12 +48,19 @@ def handle_new_message(incoming_message: str, connection_socket: socket) -> str:
     :param connection_socket: socket object representing the connection
     :return: a copy of the new outgoing message
     """
+    # Show the previous turn's result (if after the first move)
+    # TODO: track local player's previous choice
+
+    # Update score
+    # TODO: track score
+
+    # Get local player's next move
     outgoing_message = prompt_next_move()
 
     # Show opponent's move choice
     print(f'{REPLY_LINE_PREFIX}{incoming_message}')
 
-    # Regenerate move choices after the appropriate number of rounds,
+    # Regenerate move choices if remaining move options have dwindled too much,
     # so the game can continue until a player quits
     print('(after some rounds) You randomly regenerated a placeholder!')
 
@@ -146,6 +159,7 @@ def play_game(connection_socket: socket):
         if is_last_packet is True:
             # Check for quit message
             if incoming_message_payload == QUIT_MESSAGE:
+                handle_endgame()
                 return
 
             # Check for stage selection message from player 1
@@ -157,6 +171,7 @@ def play_game(connection_socket: socket):
                 outgoing_message = handle_new_message(incoming_message_payload, connection_socket)
 
                 if outgoing_message == QUIT_MESSAGE:
+                    handle_endgame()
                     return
 
             # Reset to track the new message
