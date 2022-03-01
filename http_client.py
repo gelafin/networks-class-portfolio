@@ -4,7 +4,7 @@
 
 from socket import *
 from project_constants import *
-from project_helpers import handle_new_connection, send_message
+from project_helpers import play_game, send_message, prompt_next_move
 
 
 def main():
@@ -19,14 +19,18 @@ def main():
     # Print this socket's configuration data
     print(f'Connected at {SERVER_NAME}:{SERVER_PORT}. Type {QUIT_MESSAGE} to quit.')
 
-    # Choose a message to send to the other host
-    outgoing_message = input('Enter message to send...\n')
+    # Select a stage
+    stage_selection_message = input(STAGE_CHOICE_PROMPT)
 
-    # Send message to server
-    send_message(outgoing_message, client_socket)
+    # Communicate stage selection to the other player
+    send_message(stage_selection_message, client_socket)
+
+    # Start the game by taking the first turn
+    first_move = prompt_next_move()
+    send_message(first_move, client_socket)
 
     # Interact with the server until sending or receiving a quit message
-    handle_new_connection(client_socket)
+    play_game(client_socket)
 
     # Close socket connection
     client_socket.close()

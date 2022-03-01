@@ -6,6 +6,34 @@ from project_constants import *
 from math import ceil
 
 
+def set_stage(stage: str):
+    """
+    Updates player 2 to use the stage selected by player 1,
+    and notifies player 2 of stage conditions.
+    :param stage: message received from player 1
+    """
+    print(f'Playing on stage {stage}')
+    print(f'On {stage}, you both start with the following move options:')
+    print(STAGES[stage])
+
+    return
+
+
+def prompt_next_move() -> str:
+    """
+    Shows players' remaining move options and prompts current player for a new move
+    :return: current player's move selection
+    """
+    # Show both players' remaining move options
+    print('Your remaining options:\n\tR: placeholder\n\tP: placeholder\n\tS: placeholder')
+    print('Opponent\'s remaining options:\n\tR: placeholder\n\tP: placeholder\n\tS: placeholder')
+
+    # Your turn--what's your move?
+    outgoing_message = input('your next move (R / P / S): ')
+
+    return outgoing_message
+
+
 def handle_new_message(incoming_message: str, connection_socket: socket) -> str:
     """
     Displays the received message, prompts for a reply message,
@@ -14,12 +42,16 @@ def handle_new_message(incoming_message: str, connection_socket: socket) -> str:
     :param connection_socket: socket object representing the connection
     :return: a copy of the new outgoing message
     """
+    outgoing_message = prompt_next_move()
+
+    # Show opponent's move choice
     print(f'{REPLY_LINE_PREFIX}{incoming_message}')
 
-    # Get a message to send to the client
-    outgoing_message = input()
+    # Regenerate move choices after the appropriate number of rounds,
+    # so the game can continue until a player quits
+    print('(after some rounds) You randomly regenerated a placeholder!')
 
-    # Send the response message
+    # Send the response message to update other player
     send_message(outgoing_message, connection_socket)
 
     return outgoing_message
@@ -95,7 +127,7 @@ def receive_next_packet(connection_socket: socket) -> dict:
     return packet_data_out
 
 
-def handle_new_connection(connection_socket: socket):
+def play_game(connection_socket: socket):
     """
     Interacts with another host until sending or receiving a quit message.
     Starts interaction by receiving.
@@ -116,10 +148,16 @@ def handle_new_connection(connection_socket: socket):
             if incoming_message_payload == QUIT_MESSAGE:
                 return
 
-            outgoing_message = handle_new_message(incoming_message_payload, connection_socket)
+            # Check for stage selection message from player 1
+            elif incoming_message_payload in STAGES:
+                set_stage(incoming_message_payload)
 
-            if outgoing_message == QUIT_MESSAGE:
-                return
+            # Process a normal message
+            else:
+                outgoing_message = handle_new_message(incoming_message_payload, connection_socket)
+
+                if outgoing_message == QUIT_MESSAGE:
+                    return
 
             # Reset to track the new message
             incoming_message_payload = ''

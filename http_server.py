@@ -4,7 +4,7 @@
 
 from socket import *
 from project_constants import *
-from project_helpers import handle_new_connection
+from project_helpers import play_game
 
 
 def main():
@@ -29,10 +29,10 @@ def main():
         print(f'Connected at {SERVER_NAME}:{SERVER_PORT}. Type {QUIT_MESSAGE} to quit.')
 
         # Print a server-specific notice
-        print('Waiting for message...')
+        print('Waiting for player 1 to select a stage...')
 
         # Interact with the new connection
-        handle_new_connection(connection_socket)
+        play_game(connection_socket)
 
         # Close the connection
         connection_socket.close()
