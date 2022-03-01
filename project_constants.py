@@ -18,3 +18,6 @@ SERVER_PORT = PORT_NUMBER  # arbitrary port > 1023 (source: previous assignment 
 # and a receiver accumulates packets until detecting a flag of 1.
 GELA372_LAST_PACKET_FALSE = '0'
 GELA372_LAST_PACKET_TRUE = '1'
+
+# Choose a string that will distinguish replies
+REPLY_LINE_PREFIX = '>'

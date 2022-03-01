@@ -14,12 +14,10 @@ def handle_new_message(incoming_message: str, connection_socket: socket) -> str:
     :param connection_socket: socket object representing the connection
     :return: a copy of the new outgoing message
     """
-    print(f'Received: {incoming_message}')
+    print(f'{REPLY_LINE_PREFIX}{incoming_message}')
 
     # Get a message to send to the client
-    outgoing_message = input('Type response... ')
-
-    print(f'Sending response: {outgoing_message}')
+    outgoing_message = input()
 
     # Send the response message
     send_message(outgoing_message, connection_socket)
@@ -103,9 +101,6 @@ def handle_new_connection(connection_socket: socket):
     Starts interaction by receiving.
     :param connection_socket: socket object representing the connection
     """
-    # Print this socket's configuration data
-    print(f'Connected at {SERVER_NAME}:{SERVER_PORT}. Type {QUIT_MESSAGE} to quit.')
-
     # Initialize the first message's data with the first packet's data
     packet_data = receive_next_packet(connection_socket)
     is_last_packet = packet_data['is_last_packet']
@@ -136,3 +131,6 @@ def handle_new_connection(connection_socket: socket):
 
         # Add this packet's payload to the message text
         incoming_message_payload += packet_payload
+
+    # Display partner's quit message, to notify user of intentional connection close
+    print(f'{REPLY_LINE_PREFIX}{incoming_message_payload}')
