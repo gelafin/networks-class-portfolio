@@ -23,7 +23,6 @@ def main():
     outgoing_message = input('Enter message to send...\n')
 
     # Send message to server
-    # print(f'DEBUG: Sending first message:\n{outgoing_message}')
     send_message(outgoing_message, client_socket)
 
     # Interact with the server until sending or receiving a quit message
