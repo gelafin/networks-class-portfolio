@@ -40,6 +40,8 @@ def main():
     # Close socket connection
     client_socket.close()
 
+    print('\nConnection closed.')
+
 
 if __name__ == '__main__':
     main()

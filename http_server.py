@@ -40,7 +40,7 @@ def main():
     # Close the connection
     connection_socket.close()
 
-    print('connection closed. Listening for a new connection request.')
+    print('\nConnection closed.')
 
 
 if __name__ == '__main__':
