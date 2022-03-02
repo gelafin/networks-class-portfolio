@@ -129,10 +129,10 @@ class RPSGameManager:
         """
         # Show both players' remaining move options
         local_player_move_options = self.get_player_move_options(PLAYER_1)
-        print(f'Your remaining options:{local_player_move_options}')
+        print(f'\nYour remaining options:{local_player_move_options}')
 
         # Your turn--what's your move?
-        move_selection = input('your next move (R / P / S): ')
+        move_selection = input('What is your next move (R / P / S)? ')
 
         # Record the move selection
         self.set_player_move(self.state['whose_turn'], move_selection)
