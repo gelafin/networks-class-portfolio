@@ -2,8 +2,15 @@
 # Date: 03/01/2022
 
 import json
+import enum
 from socket_helpers import *
 from game_constants import *
+
+
+class EndGameCode(enum.Enum):
+    CONTINUE = enum.auto()
+    LOCAL_PLAYER_QUITS = enum.auto()
+    OPPONENT_QUITS = enum.auto()
 
 
 class RPSGameManager:
@@ -183,12 +190,11 @@ class RPSGameManager:
         # so the game can continue until a player quits
         print('(after some rounds) You randomly regenerated a placeholder!')
 
-    def send_state_to_opponent(self, connection_socket: socket) -> str:
+    def send_state_to_opponent(self, connection_socket: socket):
         """
         Sends the current state as a string through the given socket.
         Returns a copy of the message sent.
         :param connection_socket: socket object representing the connection
-        :return: a copy of the new outgoing message
         """
         # Encode state in outgoing message
         outgoing_message = self.encode_state()
@@ -196,14 +202,12 @@ class RPSGameManager:
         # Send the response message to update other player
         send_message(outgoing_message, connection_socket)
 
-        return outgoing_message
-
-    def handle_new_message(self, incoming_message: str, connection_socket: socket) -> str:
+    def handle_new_message(self, incoming_message: str, connection_socket: socket) -> EndGameCode:
         """
 
         :param incoming_message: message received from the other host
         :param connection_socket: socket object representing the connection
-        :return: a copy of the new outgoing message
+        :return: end-game code defined in EndGameCode
         """
         # Check if stage is selected already.
         # Player 2 needs to update when player 1 selects a stage.
@@ -224,7 +228,7 @@ class RPSGameManager:
 
         # Check if opponent quit
         if self.get_opponent_move() == QUIT_MESSAGE:
-            return QUIT_MESSAGE
+            return EndGameCode.OPPONENT_QUITS
 
         # Notify player 2 of the stage choice
         if changing_stage is True:
@@ -238,17 +242,17 @@ class RPSGameManager:
         self.play_next_move()
 
         # Update opponent
-        outgoing_message = self.send_state_to_opponent(connection_socket)
+        self.send_state_to_opponent(connection_socket)
 
         # Check if local player quit
         if self.get_local_player_move() == QUIT_MESSAGE:
-            return QUIT_MESSAGE
+            return EndGameCode.LOCAL_PLAYER_QUITS
 
         # (only player 2) calculate result and display it
         if self.state['whose_turn'] == '2':
             self.handle_end_of_round()
 
-        return outgoing_message
+        return EndGameCode.CONTINUE
 
     def play_game(self, connection_socket: socket):
         """
@@ -268,11 +272,17 @@ class RPSGameManager:
             # The request message payload is now completely received.
             if is_last_packet is True:
                 # Process the complete message
-                outgoing_message = self.handle_new_message(incoming_message_payload, connection_socket)
+                endgame_code = self.handle_new_message(incoming_message_payload, connection_socket)
 
                 # Check for end of game by local player
-                if outgoing_message == QUIT_MESSAGE:
+                if endgame_code == EndGameCode.LOCAL_PLAYER_QUITS:
                     self.handle_endgame()
+
+                    return
+
+                elif endgame_code == EndGameCode.OPPONENT_QUITS:
+                    print('Opponent quit. You are the RPS master today.')
+
                     return
 
                 # Reset to track the new message
@@ -285,6 +295,3 @@ class RPSGameManager:
 
             # Add this packet's payload to the message text
             incoming_message_payload += packet_payload
-
-        # Display partner's quit message, to notify user of intentional connection close
-        print(f'{REPLY_LINE_PREFIX}{incoming_message_payload}')
