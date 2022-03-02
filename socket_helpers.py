@@ -44,6 +44,8 @@ def send_message(outgoing_message: str, connection_socket: socket):
     packet_raw_string = last_packet_flag + message_payload
     connection_socket.send(packet_raw_string.encode())
 
+    # print(f'DEBUG: sent whole message: {packet_raw_string}')
+
 
 def receive_next_packet(connection_socket: socket) -> dict:
     """
@@ -56,15 +58,16 @@ def receive_next_packet(connection_socket: socket) -> dict:
              {'is_last_packet': bool, 'payload': str}
     """
     # Receive a packet of raw byte message and decode it into a string
-    req_message_packet = connection_socket.recv(BUFFER_SIZE).decode()
+    incoming_message_packet = connection_socket.recv(BUFFER_SIZE).decode()
+    # print(f'DEBUG: received whole message: {incoming_message_packet}')
 
     # Check last packet flag using the GELA372 protocol.
-    last_packet_flag = req_message_packet[0:1]
+    last_packet_flag = incoming_message_packet[0:1]
 
     if last_packet_flag != GELA372_LAST_PACKET_FALSE and last_packet_flag != GELA372_LAST_PACKET_TRUE:
         raise Exception('received invalid packet flag')
 
-    packet_payload = req_message_packet[1:len(req_message_packet)]
+    packet_payload = incoming_message_packet[1:len(incoming_message_packet)]
     is_last_packet = True if last_packet_flag == GELA372_LAST_PACKET_TRUE else False
 
     # Wrap up the extracted data, nice and neat

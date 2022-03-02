@@ -29,7 +29,7 @@ def main():
     game_manager.set_stage(stage_selection)
 
     # Start the game by taking the first turn
-    first_move = game_manager.prompt_next_move()
+    first_move = game_manager.play_next_move()
     game_manager.set_player_move('1', first_move)
     outgoing_message = game_manager.encode_state()
     send_message(outgoing_message, client_socket)

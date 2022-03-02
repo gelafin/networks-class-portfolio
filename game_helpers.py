@@ -15,18 +15,20 @@ class RPSGameManager:
         """
         Initializes local game state
         """
-        INITIAL_PLAYER_STATE = {
+        _INITIAL_PLAYER_STATE = {
             'score': 0,
             'move_choices': None,
             'current_move': ''  # one of the R/P/S options
         }
 
+        _INITIAL_STAGE = ''
+
         self.state = {
-            'turn': 1,  # 1 or 2 (player 1 or player 2)
-            'stage': '',  # one of the constant STAGE options
+            'turn': '1',  # 1 or 2 (player 1 or player 2)
+            'stage': _INITIAL_STAGE,  # one of the constant STAGE options
             'player': {
-                '1': INITIAL_PLAYER_STATE,
-                '2': INITIAL_PLAYER_STATE
+                '1': _INITIAL_PLAYER_STATE,
+                '2': _INITIAL_PLAYER_STATE
             }
         }
 
@@ -41,7 +43,18 @@ class RPSGameManager:
         :param player:
         :param updated_options:
         """
-        self.state['player'][player] = updated_options
+        self.state['player'][player]['move_choices'] = updated_options
+
+    def print_stage_info(self):
+        """
+        Prints info about the current stage
+        """
+        stage = self.state['stage']
+        initial_move_options = STAGES[stage]
+
+        print(f'Playing on stage {stage}')
+        print(f'On {stage}, you both start with the following move options:')
+        print(initial_move_options)
 
     def set_stage(self, stage: str):
         """
@@ -51,11 +64,11 @@ class RPSGameManager:
         """
         initial_move_options = STAGES[stage]
 
-        print(f'Playing on stage {stage}')
-        print(f'On {stage}, you both start with the following move options:')
-        print(initial_move_options)
-
+        # Set the stage
         self.state['stage'] = stage
+
+        # Print info about the new stage
+        self.print_stage_info()
 
         # Initialize player move choices according to the stage
         self.set_player_move_options('1', initial_move_options)
@@ -94,7 +107,7 @@ class RPSGameManager:
         """
         return self.state['player'][player]['move_choices']
 
-    def prompt_next_move(self) -> str:
+    def play_next_move(self) -> str:
         """
         Shows players' remaining move options and prompts current player for a new move.
         Sets current player's move selection.
@@ -104,9 +117,45 @@ class RPSGameManager:
         print(f'Your remaining options:{local_player_move_options}')
 
         # Your turn--what's your move?
-        outgoing_message = input('your next move (R / P / S): ')
+        move_selection = input('your next move (R / P / S): ')
 
-        return outgoing_message
+        # Record the move selection
+        whose_turn = self.state['turn']
+        self.state['player'][whose_turn]['current_move'] = move_selection
+
+        return move_selection
+
+    def get_local_player_move(self) -> str:
+        """
+        Returns the most recent move chosen by the local player
+        :return: local player's most recent move; R, P, or S
+        """
+        local_player = '1' if self.state['turn'] == '2' else '1'
+        local_player_move = self.state['player'][local_player]['current_move']
+
+        return local_player_move
+
+    def get_opponent_move(self) -> str:
+        """
+        Returns the most recent move chosen by the opponent of the local player
+        :return: opponent's most recent move; R, P, or S
+        """
+        opponent = '1' if self.state['turn'] == '2' else '1'
+        opponent_move = self.state['player'][opponent]['current_move']
+
+        return opponent_move
+
+    def change_turn(self):
+        """
+        Changes who the current player is.
+        In this game, both players take their turn at the same time,
+        but they are processed one at a time.
+        This method helps keep track of which player is being processed.
+        """
+        if self.state['turn'] == '2':
+            self.state['turn'] = '1'
+        elif self.state['turn'] == '2':
+            self.state['turn'] = '2'
 
     def handle_new_message(self, incoming_message: str, connection_socket: socket) -> str:
         """
@@ -116,11 +165,27 @@ class RPSGameManager:
         :param connection_socket: socket object representing the connection
         :return: a copy of the new outgoing message
         """
+        # Check if stage is selected already.
+        # Player 2 needs to update when player 1 selects a stage.
+        changing_stage = True if self.state['stage'] is None else False
+
         # Decode state in incoming message
         new_state = self.decode_state(incoming_message)
 
         # Replace local state with incoming state, no questions asked
+        # print('DEBUG: local state is currently...')
+        # print(json.dumps(self.state, indent=1))
         self.state = new_state
+        # print('DEBUG: received NEW state from opponent and set local state to...')
+        # print(json.dumps(self.state, indent=1))
+
+        # Check if opponent quit
+        if self.get_opponent_move() == QUIT_MESSAGE:
+            return QUIT_MESSAGE
+
+        # Notify player 2 of the stage choice
+        if changing_stage is True:
+            self.print_stage_info()
 
         # Show the previous turn's result (if after the first move)
         # TODO: track local player's previous choice
@@ -128,11 +193,18 @@ class RPSGameManager:
         # Update score
         # TODO: track score
 
+        self.change_turn()
+
         # Get local player's next move
-        self.prompt_next_move()
+        self.play_next_move()
+
+        # Check if local player quit
+        if self.get_local_player_move() == QUIT_MESSAGE:
+            self.handle_endgame()
+            return QUIT_MESSAGE
 
         # Show opponent's move choice
-        print(f'{REPLY_LINE_PREFIX}{incoming_message}')
+        print(f'{REPLY_LINE_PREFIX}{self.get_opponent_move()}')
 
         # Regenerate move choices if remaining move options have dwindled too much,
         # so the game can continue until a player quits
@@ -163,22 +235,13 @@ class RPSGameManager:
             # If this packet is the first of a new message, process the message that just finished transmitting.
             # The request message payload is now completely received.
             if is_last_packet is True:
-                # Check for quit message
-                if incoming_message_payload == QUIT_MESSAGE:
+                # Process the complete message
+                outgoing_message = self.handle_new_message(incoming_message_payload, connection_socket)
+
+                # Check for end of game
+                if outgoing_message == QUIT_MESSAGE:
                     self.handle_endgame()
                     return
-
-                # Check for stage selection message from player 1
-                elif incoming_message_payload in STAGES:
-                    self.set_stage(incoming_message_payload)
-
-                # Process a normal message
-                else:
-                    outgoing_message = self.handle_new_message(incoming_message_payload, connection_socket)
-
-                    if outgoing_message == QUIT_MESSAGE:
-                        self.handle_endgame()
-                        return
 
                 # Reset to track the new message
                 incoming_message_payload = ''
