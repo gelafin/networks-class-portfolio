@@ -242,7 +242,6 @@ class RPSGameManager:
 
         # Check if local player quit
         if self.get_local_player_move() == QUIT_MESSAGE:
-            self.handle_endgame()
             return QUIT_MESSAGE
 
         # (only player 2) calculate result and display it
