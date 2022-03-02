@@ -3,6 +3,9 @@
 
 import json
 import enum
+
+from typing import Tuple
+
 from socket_helpers import *
 from game_constants import *
 
@@ -35,6 +38,7 @@ class RPSGameManager:
 
         self.state = {
             'whose_turn': PLAYER_1,  # 1 or 2 (player 1 or player 2)
+            'round_winner': '',
             'stage': self._INITIAL_STAGE,  # one of the constant STAGE options
             'player': {  # language limitation: have to hard-code player strings for dict keys
                 '1': _INITIAL_PLAYER_STATE,
@@ -46,7 +50,8 @@ class RPSGameManager:
         """
         Shows final score
         """
-        print('final scores: placeholder')
+        print('\n***Final scores***')
+        self.show_scores()
 
     def set_player_move_options(self, player, updated_options: dict):
         """
@@ -139,20 +144,23 @@ class RPSGameManager:
         Returns the most recent move chosen by the local player
         :return: local player's most recent move; R, P, or S
         """
-        local_player = None
+        local_player = self.get_local_player()
 
-        if self.state['whose_turn'] == PLAYER_1:
-            local_player = PLAYER_1
-        elif self.state['whose_turn'] == PLAYER_2:
-            local_player = PLAYER_2
         local_player_move = self.state['player'][local_player]['current_move']
 
         return local_player_move
 
-    def get_opponent_move(self) -> str:
+    def get_local_player(self) -> str:
         """
-        Returns the most recent move chosen by the opponent of the local player
-        :return: opponent's most recent move; R, P, or S
+        Returns the local player's constant descriptor
+        :return: the local player's constant descriptor
+        """
+        return self.state['whose_turn']
+
+    def get_opponent(self) -> str:
+        """
+        Returns the opponent's constant descriptor
+        :return: the opponent's constant descriptor
         """
         opponent = None
 
@@ -160,6 +168,15 @@ class RPSGameManager:
             opponent = PLAYER_1
         elif self.state['whose_turn'] == PLAYER_1:
             opponent = PLAYER_2
+
+        return opponent
+
+    def get_opponent_move(self) -> str:
+        """
+        Returns the most recent move chosen by the opponent of the local player
+        :return: opponent's most recent move; R, P, or S
+        """
+        opponent = self.get_opponent()
 
         opponent_move = self.state['player'][opponent]['current_move']
 
@@ -177,24 +194,89 @@ class RPSGameManager:
         elif self.state['whose_turn'] == PLAYER_1:
             self.state['whose_turn'] = PLAYER_2
 
-    def calculate_round_result(self) -> int:
+    def award_round_winner(self, winner: str):
         """
-        Calculates the result of a completed round
-        :return:
+        Sets round winner in state and updates score
+        :param winner: player who won
         """
-        pass
+        # Track round winner
+        self.state['round_winner'] = winner
+
+        # Increase score of round winner, if not a tie
+        if winner != TIE:
+            self.state['player'][winner]['score'] += 1
+
+    def calculate_round_result(self):
+        """
+        Calculates the result of a completed round.
+        Sets round_winner in state.
+        """
+        local_move = self.get_local_player_move()
+        opponent_move = self.get_opponent_move()
+
+        # Check if local player won
+        if MOVE_PRIORITY[local_move] == opponent_move:
+            winner = self.get_local_player()
+
+        # Check if opponent won
+        elif MOVE_PRIORITY[opponent_move] == local_move:
+            winner = self.get_opponent()
+
+        # This round was a tie
+        else:
+            winner = TIE
+
+        # Update state
+        self.award_round_winner(winner)
+
+    def get_round_winner(self) -> str:
+        """
+        Returns the most recent round's winner
+        :return: the most recent round's winner,
+                 which could be either player, or TIE
+        """
+        return self.state['round_winner']
+
+    def get_scores(self) -> Tuple:
+        """
+        Returns scores of both players
+        :return: Tuple of scores.
+                 First score is local player's,
+                 second score is opponent's
+        """
+        local_player_score = self.state['player'][self.get_local_player()]['score']
+        opponent_score = self.state['player'][self.get_opponent()]['score']
+
+        return local_player_score, opponent_score
+
+    def show_scores(self):
+        """
+        Prints current scores for both players
+        """
+        local_player_score, opponent_score = self.get_scores()
+        print(f'Your score: {local_player_score}')
+        print(f'Opponent score: {opponent_score}')
 
     def handle_end_of_round(self):
         """
         Calculates and displays result of one round, after both players have taken their turn
         """
-        # Award point based on who won, or no point if a tie
+        # Award point and record round winner
+        self.calculate_round_result()
 
         # Display results
         # Show opponent's move choice
         print(f'{REPLY_LINE_PREFIX}{self.get_opponent_move()}')
-        print('You both win this round, because this is a placeholder')
-        print('Current score: placeholder')
+
+        # Show round winner
+        winner = self.get_round_winner()
+        if winner != TIE:
+            print(f'Player {winner} wins this round!')
+        else:
+            print('This round was a tie!')
+
+        # Show current score
+        self.show_scores()
 
         # Regenerate move choices if remaining move options have dwindled too much,
         # so the game can continue until a player quits
@@ -292,7 +374,7 @@ class RPSGameManager:
 
                 elif endgame_code == EndGameCode.OPPONENT_QUITS:
                     self.handle_endgame()
-                    print('Opponent quit. You are the RPS master today.')
+                    print('\nOpponent quit. You are the RPS master today.')
 
                     return
 

@@ -8,6 +8,10 @@ QUIT_MESSAGE = '\\q'
 PLAYER_1 = '1'
 PLAYER_2 = '2'
 
+# Represent a tie.
+# This should have the same data type as the players but represent neither of them.
+TIE = 'tie'
+
 # Choose a string that will distinguish replies
 REPLY_LINE_PREFIX = 'vs '
 

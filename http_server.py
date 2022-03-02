@@ -32,7 +32,7 @@ def main():
     game_manager = RPSGameManager()
 
     # Print a server-specific notice
-    print('Waiting for player 1 to select a stage...')
+    print('You are player 2. Waiting for player 1 to select a stage...')
 
     # Interact with the new connection
     game_manager.play_game(connection_socket)
