@@ -24,7 +24,7 @@ class RPSGameManager:
         self._INITIAL_STAGE = ''
 
         self.state = {
-            'turn': '1',  # 1 or 2 (player 1 or player 2)
+            'whose_turn': '1',  # 1 or 2 (player 1 or player 2)
             'stage': self._INITIAL_STAGE,  # one of the constant STAGE options
             'player': {
                 '1': _INITIAL_PLAYER_STATE,
@@ -120,8 +120,7 @@ class RPSGameManager:
         move_selection = input('your next move (R / P / S): ')
 
         # Record the move selection
-        whose_turn = self.state['turn']
-        self.state['player'][whose_turn]['current_move'] = move_selection
+        self.set_player_move(self.state['whose_turn'], move_selection)
 
         return move_selection
 
@@ -132,9 +131,9 @@ class RPSGameManager:
         """
         local_player = None
 
-        if self.state['turn'] == '1':
+        if self.state['whose_turn'] == '1':
             local_player = '1'
-        elif self.state['turn'] == '2':
+        elif self.state['whose_turn'] == '2':
             local_player = '2'
         local_player_move = self.state['player'][local_player]['current_move']
 
@@ -147,9 +146,9 @@ class RPSGameManager:
         """
         opponent = None
 
-        if self.state['turn'] == '2':
+        if self.state['whose_turn'] == '2':
             opponent = '1'
-        elif self.state['turn'] == '1':
+        elif self.state['whose_turn'] == '1':
             opponent = '2'
 
         opponent_move = self.state['player'][opponent]['current_move']
@@ -163,10 +162,10 @@ class RPSGameManager:
         but they are processed one at a time.
         This method helps keep track of which player is being processed.
         """
-        if self.state['turn'] == '2':
-            self.state['turn'] = '1'
-        elif self.state['turn'] == '1':
-            self.state['turn'] = '2'
+        if self.state['whose_turn'] == '2':
+            self.state['whose_turn'] = '1'
+        elif self.state['whose_turn'] == '1':
+            self.state['whose_turn'] = '2'
 
     def handle_new_message(self, incoming_message: str, connection_socket: socket) -> str:
         """

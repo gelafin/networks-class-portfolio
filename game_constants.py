@@ -41,7 +41,7 @@ STAGES = {
 }
 
 # Choose the message that displays to the client player who selects the stage
-STAGE_CHOICE_PROMPT = ('You are player 1.\n\nChoose a stage by entering its name.' +
-                       'R, P, and S show how many of Rock, Paper, and Scissors each player gets.\n' +
-                       f'{STAGES}'
+STAGE_CHOICE_PROMPT = ('You are player 1.\n\nChoose a stage by entering its name. ' +
+                       'R, P, and S show how many of Rock, Paper, and Scissors each player gets.\n\n' +
+                       f'{STAGES}\n\n'
                        )
