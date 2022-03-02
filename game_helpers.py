@@ -167,10 +167,40 @@ class RPSGameManager:
         elif self.state['whose_turn'] == '1':
             self.state['whose_turn'] = '2'
 
+    def handle_end_of_round(self):
+        """
+        Calculates and displays result of one round, after both players have taken their turn
+        """
+        # Award point based on who won, or no point if a tie
+
+        # Display results
+        # Show opponent's move choice
+        print(f'{REPLY_LINE_PREFIX}{self.get_opponent_move()}')
+        print('You both win this round, because this is a placeholder')
+        print('Current score: placeholder')
+
+        # Regenerate move choices if remaining move options have dwindled too much,
+        # so the game can continue until a player quits
+        print('(after some rounds) You randomly regenerated a placeholder!')
+
+    def send_state_to_opponent(self, connection_socket: socket) -> str:
+        """
+        Sends the current state as a string through the given socket.
+        Returns a copy of the message sent.
+        :param connection_socket: socket object representing the connection
+        :return: a copy of the new outgoing message
+        """
+        # Encode state in outgoing message
+        outgoing_message = self.encode_state()
+
+        # Send the response message to update other player
+        send_message(outgoing_message, connection_socket)
+
+        return outgoing_message
+
     def handle_new_message(self, incoming_message: str, connection_socket: socket) -> str:
         """
-        Displays the received message, prompts for a reply message,
-        and sends the reply message through the given socket.
+
         :param incoming_message: message received from the other host
         :param connection_socket: socket object representing the connection
         :return: a copy of the new outgoing message
@@ -200,32 +230,24 @@ class RPSGameManager:
         if changing_stage is True:
             self.print_stage_info()
 
-        # Show the previous turn's result (if after the first move)
-        # TODO: track local player's previous choice
-
-        # Update score
-        # TODO: track score
+        # (only player 1) calculate result and display it
+        if self.state['whose_turn'] == '1':
+            self.handle_end_of_round()
 
         # Get local player's next move
         self.play_next_move()
+
+        # Update opponent
+        outgoing_message = self.send_state_to_opponent(connection_socket)
 
         # Check if local player quit
         if self.get_local_player_move() == QUIT_MESSAGE:
             self.handle_endgame()
             return QUIT_MESSAGE
 
-        # Show opponent's move choice
-        print(f'{REPLY_LINE_PREFIX}{self.get_opponent_move()}')
-
-        # Regenerate move choices if remaining move options have dwindled too much,
-        # so the game can continue until a player quits
-        print('(after some rounds) You randomly regenerated a placeholder!')
-
-        # Encode state in outgoing message
-        outgoing_message = self.encode_state()
-
-        # Send the response message to update other player
-        send_message(outgoing_message, connection_socket)
+        # (only player 2) calculate result and display it
+        if self.state['whose_turn'] == '2':
+            self.handle_end_of_round()
 
         return outgoing_message
 
@@ -249,7 +271,7 @@ class RPSGameManager:
                 # Process the complete message
                 outgoing_message = self.handle_new_message(incoming_message_payload, connection_socket)
 
-                # Check for end of game
+                # Check for end of game by local player
                 if outgoing_message == QUIT_MESSAGE:
                     self.handle_endgame()
                     return

@@ -29,13 +29,13 @@ def main():
     game_manager.set_stage(stage_selection)
 
     # Start the game by taking the first turn
-    first_move = game_manager.play_next_move()
-    game_manager.set_player_move('1', first_move)
-    outgoing_message = game_manager.encode_state()
-    send_message(outgoing_message, client_socket)
+    game_manager.play_next_move()
+    game_manager.send_state_to_opponent(client_socket)
 
-    # Interact with the server until sending or receiving a quit message
-    game_manager.play_game(client_socket)
+    # Edge case: if local player's initial move is quit message, skip remaining interaction
+    if game_manager.get_local_player_move() != QUIT_MESSAGE:
+        # Interact with the server until sending or receiving a quit message
+        game_manager.play_game(client_socket)
 
     # Close socket connection
     client_socket.close()
