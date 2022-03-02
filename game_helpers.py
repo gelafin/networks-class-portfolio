@@ -21,11 +21,11 @@ class RPSGameManager:
             'current_move': ''  # one of the R/P/S options
         }
 
-        _INITIAL_STAGE = ''
+        self._INITIAL_STAGE = ''
 
         self.state = {
             'turn': '1',  # 1 or 2 (player 1 or player 2)
-            'stage': _INITIAL_STAGE,  # one of the constant STAGE options
+            'stage': self._INITIAL_STAGE,  # one of the constant STAGE options
             'player': {
                 '1': _INITIAL_PLAYER_STATE,
                 '2': _INITIAL_PLAYER_STATE
@@ -130,7 +130,12 @@ class RPSGameManager:
         Returns the most recent move chosen by the local player
         :return: local player's most recent move; R, P, or S
         """
-        local_player = '1' if self.state['turn'] == '2' else '1'
+        local_player = None
+
+        if self.state['turn'] == '1':
+            local_player = '1'
+        elif self.state['turn'] == '2':
+            local_player = '2'
         local_player_move = self.state['player'][local_player]['current_move']
 
         return local_player_move
@@ -140,7 +145,13 @@ class RPSGameManager:
         Returns the most recent move chosen by the opponent of the local player
         :return: opponent's most recent move; R, P, or S
         """
-        opponent = '1' if self.state['turn'] == '2' else '1'
+        opponent = None
+
+        if self.state['turn'] == '2':
+            opponent = '1'
+        elif self.state['turn'] == '1':
+            opponent = '2'
+
         opponent_move = self.state['player'][opponent]['current_move']
 
         return opponent_move
@@ -154,7 +165,7 @@ class RPSGameManager:
         """
         if self.state['turn'] == '2':
             self.state['turn'] = '1'
-        elif self.state['turn'] == '2':
+        elif self.state['turn'] == '1':
             self.state['turn'] = '2'
 
     def handle_new_message(self, incoming_message: str, connection_socket: socket) -> str:
@@ -167,7 +178,7 @@ class RPSGameManager:
         """
         # Check if stage is selected already.
         # Player 2 needs to update when player 1 selects a stage.
-        changing_stage = True if self.state['stage'] is None else False
+        changing_stage = True if self.state['stage'] is self._INITIAL_STAGE else False
 
         # Decode state in incoming message
         new_state = self.decode_state(incoming_message)
@@ -178,6 +189,9 @@ class RPSGameManager:
         self.state = new_state
         # print('DEBUG: received NEW state from opponent and set local state to...')
         # print(json.dumps(self.state, indent=1))
+
+        # State is received after opponent updated it for their turn. Change it back to local player's turn
+        self.change_turn()
 
         # Check if opponent quit
         if self.get_opponent_move() == QUIT_MESSAGE:
@@ -192,8 +206,6 @@ class RPSGameManager:
 
         # Update score
         # TODO: track score
-
-        self.change_turn()
 
         # Get local player's next move
         self.play_next_move()
