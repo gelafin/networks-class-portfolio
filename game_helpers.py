@@ -281,6 +281,7 @@ class RPSGameManager:
                     return
 
                 elif endgame_code == EndGameCode.OPPONENT_QUITS:
+                    self.handle_endgame()
                     print('Opponent quit. You are the RPS master today.')
 
                     return
