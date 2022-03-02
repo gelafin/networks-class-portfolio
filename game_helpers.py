@@ -8,6 +8,9 @@ from game_constants import *
 
 
 class EndGameCode(enum.Enum):
+    """
+    Defines choices for end-game codes
+    """
     CONTINUE = enum.auto()
     LOCAL_PLAYER_QUITS = enum.auto()
     OPPONENT_QUITS = enum.auto()
@@ -31,9 +34,9 @@ class RPSGameManager:
         self._INITIAL_STAGE = ''
 
         self.state = {
-            'whose_turn': '1',  # 1 or 2 (player 1 or player 2)
+            'whose_turn': PLAYER_1,  # 1 or 2 (player 1 or player 2)
             'stage': self._INITIAL_STAGE,  # one of the constant STAGE options
-            'player': {
+            'player': {  # language limitation: have to hard-code player strings for dict keys
                 '1': _INITIAL_PLAYER_STATE,
                 '2': _INITIAL_PLAYER_STATE
             }
@@ -78,8 +81,8 @@ class RPSGameManager:
         self.print_stage_info()
 
         # Initialize player move choices according to the stage
-        self.set_player_move_options('1', initial_move_options)
-        self.set_player_move_options('2', initial_move_options)
+        self.set_player_move_options(PLAYER_1, initial_move_options)
+        self.set_player_move_options(PLAYER_2, initial_move_options)
 
     def set_player_move(self, player: str, move: str):
         """
@@ -120,7 +123,7 @@ class RPSGameManager:
         Sets current player's move selection.
         """
         # Show both players' remaining move options
-        local_player_move_options = self.get_player_move_options('1')
+        local_player_move_options = self.get_player_move_options(PLAYER_1)
         print(f'Your remaining options:{local_player_move_options}')
 
         # Your turn--what's your move?
@@ -138,10 +141,10 @@ class RPSGameManager:
         """
         local_player = None
 
-        if self.state['whose_turn'] == '1':
-            local_player = '1'
-        elif self.state['whose_turn'] == '2':
-            local_player = '2'
+        if self.state['whose_turn'] == PLAYER_1:
+            local_player = PLAYER_1
+        elif self.state['whose_turn'] == PLAYER_2:
+            local_player = PLAYER_2
         local_player_move = self.state['player'][local_player]['current_move']
 
         return local_player_move
@@ -153,10 +156,10 @@ class RPSGameManager:
         """
         opponent = None
 
-        if self.state['whose_turn'] == '2':
-            opponent = '1'
-        elif self.state['whose_turn'] == '1':
-            opponent = '2'
+        if self.state['whose_turn'] == PLAYER_2:
+            opponent = PLAYER_1
+        elif self.state['whose_turn'] == PLAYER_1:
+            opponent = PLAYER_2
 
         opponent_move = self.state['player'][opponent]['current_move']
 
@@ -169,10 +172,17 @@ class RPSGameManager:
         but they are processed one at a time.
         This method helps keep track of which player is being processed.
         """
-        if self.state['whose_turn'] == '2':
-            self.state['whose_turn'] = '1'
-        elif self.state['whose_turn'] == '1':
-            self.state['whose_turn'] = '2'
+        if self.state['whose_turn'] == PLAYER_2:
+            self.state['whose_turn'] = PLAYER_1
+        elif self.state['whose_turn'] == PLAYER_1:
+            self.state['whose_turn'] = PLAYER_2
+
+    def calculate_round_result(self) -> int:
+        """
+        Calculates the result of a completed round
+        :return:
+        """
+        pass
 
     def handle_end_of_round(self):
         """
@@ -204,7 +214,7 @@ class RPSGameManager:
 
     def handle_new_message(self, incoming_message: str, connection_socket: socket) -> EndGameCode:
         """
-
+        Plays one round of the game for either player, given an existing state.
         :param incoming_message: message received from the other host
         :param connection_socket: socket object representing the connection
         :return: end-game code defined in EndGameCode
@@ -235,7 +245,7 @@ class RPSGameManager:
             self.print_stage_info()
 
         # (only player 1) calculate result and display it
-        if self.state['whose_turn'] == '1':
+        if self.state['whose_turn'] == PLAYER_1:
             self.handle_end_of_round()
 
         # Get local player's next move
@@ -249,7 +259,7 @@ class RPSGameManager:
             return EndGameCode.LOCAL_PLAYER_QUITS
 
         # (only player 2) calculate result and display it
-        if self.state['whose_turn'] == '2':
+        if self.state['whose_turn'] == PLAYER_2:
             self.handle_end_of_round()
 
         return EndGameCode.CONTINUE

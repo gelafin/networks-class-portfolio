@@ -3,8 +3,20 @@
 
 QUIT_MESSAGE = '\\q'
 
+# Use strings to represent players, so they can be used in dicts
+# and are compatible with the json library
+PLAYER_1 = '1'
+PLAYER_2 = '2'
+
 # Choose a string that will distinguish replies
 REPLY_LINE_PREFIX = 'vs '
+
+# Define which moves are defeated by a given move
+MOVE_PRIORITY = {
+    'R': 'S',
+    'P': 'R',
+    'S': 'P'
+}
 
 # Define stage choices
 STAGES = {
