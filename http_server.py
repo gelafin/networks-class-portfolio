@@ -21,27 +21,26 @@ def main():
     server_socket.listen(1)  # allow max of 1 queued connection
     print('listening for connection requests')
 
-    # Accept and handle requests
-    while True:
-        # Accept a new connection
-        connection_socket, client_address = server_socket.accept()
+    # Accept only one connection.
+    # This is where a forever loop would start if accepting many connections.
+    connection_socket, client_address = server_socket.accept()
 
-        # Print this socket's configuration data
-        print(f'Connected at {SERVER_NAME}:{SERVER_PORT}. Type {QUIT_MESSAGE} to quit.')
+    # Print this socket's configuration data
+    print(f'Connected at {SERVER_NAME}:{SERVER_PORT}. Type {QUIT_MESSAGE} to quit.')
 
-        # Instantiate the game manager, which tracks state
-        game_manager = RPSGameManager()
+    # Instantiate the game manager, which tracks state
+    game_manager = RPSGameManager()
 
-        # Print a server-specific notice
-        print('Waiting for player 1 to select a stage...')
+    # Print a server-specific notice
+    print('Waiting for player 1 to select a stage...')
 
-        # Interact with the new connection
-        game_manager.play_game(connection_socket)
+    # Interact with the new connection
+    game_manager.play_game(connection_socket)
 
-        # Close the connection
-        connection_socket.close()
+    # Close the connection
+    connection_socket.close()
 
-        print('connection closed. Listening for a new connection request.')
+    print('connection closed. Listening for a new connection request.')
 
 
 if __name__ == '__main__':
