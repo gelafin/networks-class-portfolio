@@ -1,11 +1,10 @@
 # Author: Mark Mendez
 # Date: 03/01/2022
 
+import copy
 import json
 import enum
-
 from typing import Tuple
-
 from socket_helpers import *
 from game_constants import *
 
@@ -41,8 +40,8 @@ class RPSGameManager:
             'round_winner': '',
             'stage': self._INITIAL_STAGE,  # one of the constant STAGE options
             'player': {  # language limitation: have to hard-code player strings for dict keys
-                '1': _INITIAL_PLAYER_STATE,
-                '2': _INITIAL_PLAYER_STATE
+                '1': copy.deepcopy(_INITIAL_PLAYER_STATE),
+                '2': copy.deepcopy(_INITIAL_PLAYER_STATE)
             }
         }
 
@@ -86,16 +85,21 @@ class RPSGameManager:
         self.print_stage_info()
 
         # Initialize player move choices according to the stage
-        self.set_player_move_options(PLAYER_1, initial_move_options)
-        self.set_player_move_options(PLAYER_2, initial_move_options)
+        self.set_player_move_options(PLAYER_1, copy.deepcopy(initial_move_options))
+        self.set_player_move_options(PLAYER_2, copy.deepcopy(initial_move_options))
 
-    def set_player_move(self, player: str, move: str):
+    def record_player_move(self, player: str, move: str):
         """
         Sets the move of the given player in game state
         :param player: 1 or 2 (player 1 or player 2)
         :param move: R, P, or S
         """
+        # Record which move was taken
         self.state['player'][player]['current_move'] = move
+
+        # Subtract this move from the player's remaining options
+        if move != QUIT_MESSAGE:
+            self.state['player'][player]['move_choices'][move] -= 1
 
     @staticmethod
     def decode_state(state_string: str) -> dict:
@@ -128,14 +132,14 @@ class RPSGameManager:
         Sets current player's move selection.
         """
         # Show both players' remaining move options
-        local_player_move_options = self.get_player_move_options(PLAYER_1)
+        local_player_move_options = self.get_player_move_options(self.get_local_player())
         print(f'\nYour remaining options:{local_player_move_options}')
 
         # Your turn--what's your move?
         move_selection = input('What is your next move (R / P / S)? ')
 
         # Record the move selection
-        self.set_player_move(self.state['whose_turn'], move_selection)
+        self.record_player_move(self.state['whose_turn'], move_selection)
 
         return move_selection
 
@@ -309,11 +313,11 @@ class RPSGameManager:
         new_state = self.decode_state(incoming_message)
 
         # Replace local state with incoming state, no questions asked
-        # print('DEBUG: local state is currently...')
-        # print(json.dumps(self.state, indent=1))
+        print('DEBUG: local state is currently...')
+        print(json.dumps(self.state, indent=1))
         self.state = new_state
-        # print('DEBUG: received NEW state from opponent and set local state to...')
-        # print(json.dumps(self.state, indent=1))
+        print('DEBUG: received NEW state from opponent and set local state to...')
+        print(json.dumps(self.state, indent=1))
 
         # State is received after opponent updated it for their turn. Change it back to local player's turn
         self.change_turn()
