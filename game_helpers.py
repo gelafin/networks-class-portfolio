@@ -22,7 +22,7 @@ class EndGameCode(enum.Enum):
 
 class RPSGameManager:
     """
-    Helper class for Super Rock-Paper-Scissors.
+    Helper class for Super LAN Rock-Paper-Scissors.
     Tracks local state and sends socket messages to align state between players.
     """
     def __init__(self):
@@ -287,7 +287,7 @@ class RPSGameManager:
     def count_remaining_move_options(self, player: str) -> int:
         """
         Totals the remaining move options for a given player
-        :param player:
+        :param player: a player's representative constant defined in game_constants.py
         :return: sum of all remaining move options for a given player
         """
         return sum(self.state['player'][player]['move_choices'].values())
@@ -295,6 +295,7 @@ class RPSGameManager:
     def regenerate_random_option(self, player: str):
         """
         Regenerates a random one of the given player's options
+        :param player: a player's representative constant defined in game_constants.py
         """
         random_option = random.choice(ALL_MOVES)
         self.state['player'][player]['move_choices'][random_option] += REGEN_QUANTITY_EACH
@@ -340,7 +341,6 @@ class RPSGameManager:
     def send_state_to_opponent(self, connection_socket: socket):
         """
         Sends the current state as a string through the given socket.
-        Returns a copy of the message sent.
         :param connection_socket: socket object representing the connection
         """
         # Encode state in outgoing message
