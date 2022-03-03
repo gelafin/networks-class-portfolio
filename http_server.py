@@ -3,8 +3,9 @@
 # used starter code and concepts from "Computer Networking: A Top-Down Approach" by James F. Kurose and Keith Ross
 
 from socket import *
-from project_constants import *
-from project_helpers import handle_new_connection
+from socket_constants import *
+from game_constants import *
+from game_helpers import RPSGameManager
 
 
 def main():
@@ -20,24 +21,26 @@ def main():
     server_socket.listen(1)  # allow max of 1 queued connection
     print('listening for connection requests')
 
-    # Accept and handle requests
-    while True:
-        # Accept a new connection
-        connection_socket, client_address = server_socket.accept()
+    # Accept only one connection.
+    # This is where a forever loop would start if accepting many connections.
+    connection_socket, client_address = server_socket.accept()
 
-        # Print this socket's configuration data
-        print(f'Connected at {SERVER_NAME}:{SERVER_PORT}. Type {QUIT_MESSAGE} to quit.')
+    # Print this socket's configuration data
+    print(f'Connected at {SERVER_NAME}:{SERVER_PORT}. Type {QUIT_MESSAGE} to quit.')
 
-        # Print a server-specific notice
-        print('Waiting for message...')
+    # Instantiate the game manager, which tracks state
+    game_manager = RPSGameManager()
 
-        # Interact with the new connection
-        handle_new_connection(connection_socket)
+    # Print a server-specific notice
+    print('You are player 2. Waiting for player 1 to select a stage...')
 
-        # Close the connection
-        connection_socket.close()
+    # Interact with the new connection
+    game_manager.play_game(connection_socket)
 
-        print('connection closed. Listening for a new connection request.')
+    # Close the connection
+    connection_socket.close()
+
+    print('\nConnection closed.')
 
 
 if __name__ == '__main__':

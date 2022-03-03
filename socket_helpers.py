@@ -2,27 +2,12 @@
 # Date: 02/23/2022
 
 from socket import socket
-from project_constants import *
+from socket_constants import *
 from math import ceil
 
 
-def handle_new_message(incoming_message: str, connection_socket: socket) -> str:
-    """
-    Displays the received message, prompts for a reply message,
-    and sends the reply message through the given socket.
-    :param incoming_message: message received from the other host
-    :param connection_socket: socket object representing the connection
-    :return: a copy of the new outgoing message
-    """
-    print(f'{REPLY_LINE_PREFIX}{incoming_message}')
-
-    # Get a message to send to the client
-    outgoing_message = input()
-
-    # Send the response message
-    send_message(outgoing_message, connection_socket)
-
-    return outgoing_message
+class PacketUnpackError(Exception):
+    pass
 
 
 def send_message(outgoing_message: str, connection_socket: socket):
@@ -63,6 +48,8 @@ def send_message(outgoing_message: str, connection_socket: socket):
     packet_raw_string = last_packet_flag + message_payload
     connection_socket.send(packet_raw_string.encode())
 
+    # print(f'DEBUG: sent whole message: {packet_raw_string}')
+
 
 def receive_next_packet(connection_socket: socket) -> dict:
     """
@@ -75,15 +62,16 @@ def receive_next_packet(connection_socket: socket) -> dict:
              {'is_last_packet': bool, 'payload': str}
     """
     # Receive a packet of raw byte message and decode it into a string
-    req_message_packet = connection_socket.recv(BUFFER_SIZE).decode()
+    incoming_message_packet = connection_socket.recv(BUFFER_SIZE).decode()
+    # print(f'DEBUG: received whole message: {incoming_message_packet}')
 
     # Check last packet flag using the GELA372 protocol.
-    last_packet_flag = req_message_packet[0:1]
+    last_packet_flag = incoming_message_packet[0:1]
 
     if last_packet_flag != GELA372_LAST_PACKET_FALSE and last_packet_flag != GELA372_LAST_PACKET_TRUE:
-        raise Exception('received invalid packet flag')
+        raise PacketUnpackError('received invalid packet flag')
 
-    packet_payload = req_message_packet[1:len(req_message_packet)]
+    packet_payload = incoming_message_packet[1:len(incoming_message_packet)]
     is_last_packet = True if last_packet_flag == GELA372_LAST_PACKET_TRUE else False
 
     # Wrap up the extracted data, nice and neat
@@ -93,44 +81,3 @@ def receive_next_packet(connection_socket: socket) -> dict:
     }
 
     return packet_data_out
-
-
-def handle_new_connection(connection_socket: socket):
-    """
-    Interacts with another host until sending or receiving a quit message.
-    Starts interaction by receiving.
-    :param connection_socket: socket object representing the connection
-    """
-    # Initialize the first message's data with the first packet's data
-    packet_data = receive_next_packet(connection_socket)
-    is_last_packet = packet_data['is_last_packet']
-    packet_payload = packet_data['payload']
-    incoming_message_payload = packet_payload
-
-    # Receive and reply to messages in packets from client until a message matches the quit message
-    while incoming_message_payload != QUIT_MESSAGE:
-        # If this packet is the first of a new message, process the message that just finished transmitting.
-        # The request message payload is now completely received.
-        if is_last_packet is True:
-            # Check for quit message
-            if incoming_message_payload == QUIT_MESSAGE:
-                return
-
-            outgoing_message = handle_new_message(incoming_message_payload, connection_socket)
-
-            if outgoing_message == QUIT_MESSAGE:
-                return
-
-            # Reset to track the new message
-            incoming_message_payload = ''
-
-        # Receive a packet of data from the other host
-        packet_data = receive_next_packet(connection_socket)
-        is_last_packet = packet_data['is_last_packet']
-        packet_payload = packet_data['payload']
-
-        # Add this packet's payload to the message text
-        incoming_message_payload += packet_payload
-
-    # Display partner's quit message, to notify user of intentional connection close
-    print(f'{REPLY_LINE_PREFIX}{incoming_message_payload}')
