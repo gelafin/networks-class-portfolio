@@ -128,13 +128,19 @@ class RPSGameManager:
         """
         return self.state['player'][player]['move_choices']
 
-    @staticmethod
-    def get_all_valid_moves() -> List[str]:
+    def get_all_valid_moves(self, player: str) -> List[str]:
         """
         Returns a list of all valid move options, including quit option
         :return: list of all valid move options, including quit option
         """
-        valid_moves = ALL_MOVES.copy()
+        valid_moves = []
+
+        # List all moves of which player has > 0 remaining
+        for move in self.get_player_move_options(player):
+            if self.state['player'][player]['move_choices'][move] > 0:
+                valid_moves.append(move)
+
+        # Allow quit message to be selected
         valid_moves.append(QUIT_MESSAGE_PRINTABLE)
 
         return valid_moves
@@ -145,12 +151,13 @@ class RPSGameManager:
         Sets current player's move selection.
         """
         # Show both players' remaining move options
-        local_player_move_options = self.get_player_move_options(self.get_local_player())
+        local_player = self.get_local_player()
+        local_player_move_options = self.get_player_move_options(local_player)
         print(f'\nYour remaining options:{local_player_move_options}')
 
         # Your turn--what's your move?
         prompt = 'What is your next move (R / P / S)? '
-        valid_moves = self.get_all_valid_moves()
+        valid_moves = self.get_all_valid_moves(local_player)
         validation_error_message = 'No fancy stuff in this game. You have to win using the power of prediction!'
         move_selection = get_validated_input(prompt, valid_moves, validation_error_message, True)
 
