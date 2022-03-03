@@ -4,9 +4,10 @@
 import copy
 import json
 import enum
-from typing import Tuple
+from typing import Tuple, List
 from socket_helpers import *
 from game_constants import *
+from generic_utils import get_validated_input
 
 
 class EndGameCode(enum.Enum):
@@ -126,6 +127,17 @@ class RPSGameManager:
         """
         return self.state['player'][player]['move_choices']
 
+    @staticmethod
+    def get_all_valid_moves() -> List[str]:
+        """
+        Returns a list of all valid move options, including quit option
+        :return: list of all valid move options, including quit option
+        """
+        valid_moves = [move for move in MOVE_PRIORITY]
+        valid_moves.append(QUIT_MESSAGE_PRINTABLE)
+
+        return valid_moves
+
     def play_next_move(self) -> str:
         """
         Shows players' remaining move options and prompts current player for a new move.
@@ -136,7 +148,10 @@ class RPSGameManager:
         print(f'\nYour remaining options:{local_player_move_options}')
 
         # Your turn--what's your move?
-        move_selection = input('What is your next move (R / P / S)? ')
+        prompt = 'What is your next move (R / P / S)? '
+        valid_moves = self.get_all_valid_moves()
+        validation_error_message = 'No fancy stuff in this game. You have to win using the power of prediction!'
+        move_selection = get_validated_input(prompt, valid_moves, validation_error_message, True)
 
         # Record the move selection
         self.record_player_move(self.state['whose_turn'], move_selection)
@@ -313,11 +328,11 @@ class RPSGameManager:
         new_state = self.decode_state(incoming_message)
 
         # Replace local state with incoming state, no questions asked
-        print('DEBUG: local state is currently...')
-        print(json.dumps(self.state, indent=1))
+        # print('DEBUG: local state is currently...')
+        # print(json.dumps(self.state, indent=1))
         self.state = new_state
-        print('DEBUG: received NEW state from opponent and set local state to...')
-        print(json.dumps(self.state, indent=1))
+        # print('DEBUG: received NEW state from opponent and set local state to...')
+        # print(json.dumps(self.state, indent=1))
 
         # State is received after opponent updated it for their turn. Change it back to local player's turn
         self.change_turn()

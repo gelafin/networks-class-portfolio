@@ -2,6 +2,7 @@
 # Date: 03/01/2022
 
 QUIT_MESSAGE = '\\q'
+QUIT_MESSAGE_PRINTABLE = r'\q'
 
 # Message printed when local process encounters an error receiving a packet from the opponent process
 PACKET_RECEIVE_ERROR_MESSAGE = 'Opponent had an error.'

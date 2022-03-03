@@ -5,8 +5,8 @@
 from socket import *
 from socket_constants import *
 from game_constants import *
-from socket_helpers import send_message
 from game_helpers import RPSGameManager
+from generic_utils import get_validated_input
 
 
 def main():
@@ -25,7 +25,9 @@ def main():
     game_manager = RPSGameManager()
 
     # Select a stage
-    stage_selection = input(STAGE_CHOICE_PROMPT)
+    all_stages = [stage for stage in STAGES]
+    validation_error_message = 'If you really want more stages, fork the repo.'
+    stage_selection = get_validated_input(STAGE_CHOICE_PROMPT, all_stages, validation_error_message, True)
     game_manager.set_stage(stage_selection)
 
     # Start the game by taking the first turn
@@ -36,6 +38,9 @@ def main():
     if game_manager.get_local_player_move() != QUIT_MESSAGE:
         # Interact with the server until sending or receiving a quit message
         game_manager.play_game(client_socket)
+
+    else:
+        print('No contest.')
 
     # Close socket connection
     client_socket.close()
