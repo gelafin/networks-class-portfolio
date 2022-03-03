@@ -6,6 +6,10 @@ from socket_constants import *
 from math import ceil
 
 
+class PacketUnpackError(Exception):
+    pass
+
+
 def send_message(outgoing_message: str, connection_socket: socket):
     """
     Sends a given message through a given socket,
@@ -65,7 +69,7 @@ def receive_next_packet(connection_socket: socket) -> dict:
     last_packet_flag = incoming_message_packet[0:1]
 
     if last_packet_flag != GELA372_LAST_PACKET_FALSE and last_packet_flag != GELA372_LAST_PACKET_TRUE:
-        raise Exception('received invalid packet flag')
+        raise PacketUnpackError('received invalid packet flag')
 
     packet_payload = incoming_message_packet[1:len(incoming_message_packet)]
     is_last_packet = True if last_packet_flag == GELA372_LAST_PACKET_TRUE else False

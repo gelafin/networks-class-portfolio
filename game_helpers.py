@@ -357,7 +357,13 @@ class RPSGameManager:
         :param connection_socket: socket object representing the connection
         """
         # Initialize the first message's data with the first packet's data
-        packet_data = receive_next_packet(connection_socket)
+        try:
+            packet_data = receive_next_packet(connection_socket)
+
+        except PacketUnpackError:
+            print(PACKET_RECEIVE_ERROR_MESSAGE)
+            return
+
         is_last_packet = packet_data['is_last_packet']
         packet_payload = packet_data['payload']
         incoming_message_payload = packet_payload
@@ -386,7 +392,13 @@ class RPSGameManager:
                 incoming_message_payload = ''
 
             # Receive a packet of data from the other host
-            packet_data = receive_next_packet(connection_socket)
+            try:
+                packet_data = receive_next_packet(connection_socket)
+
+            except PacketUnpackError:
+                print(PACKET_RECEIVE_ERROR_MESSAGE)
+                return
+
             is_last_packet = packet_data['is_last_packet']
             packet_payload = packet_data['payload']
 

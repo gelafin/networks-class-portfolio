@@ -3,6 +3,9 @@
 
 QUIT_MESSAGE = '\\q'
 
+# Message printed when local process encounters an error receiving a packet from the opponent process
+PACKET_RECEIVE_ERROR_MESSAGE = 'Opponent had an error.'
+
 # Use strings to represent players, so they can be used in dicts
 # and are compatible with the json library
 PLAYER_1 = '1'
