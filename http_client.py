@@ -36,6 +36,9 @@ def main():
 
     # Edge case: if local player's initial move is quit message, skip remaining interaction
     if game_manager.get_local_player_move() != QUIT_MESSAGE:
+        # Tell local player to wait for opponent
+        print(WAITING_FOR_OPPONENT_MESSAGE)
+
         # Interact with the server until sending or receiving a quit message
         game_manager.play_game(client_socket)
 

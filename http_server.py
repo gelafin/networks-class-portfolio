@@ -26,13 +26,13 @@ def main():
     connection_socket, client_address = server_socket.accept()
 
     # Print this socket's configuration data
-    print(f'Connected at {SERVER_NAME}:{SERVER_PORT}. Type {QUIT_MESSAGE} to quit.')
+    print(f'Connected at {SERVER_NAME}:{SERVER_PORT}. Type {QUIT_MESSAGE} to quit.\n')
 
     # Instantiate the game manager, which tracks state
     game_manager = RPSGameManager()
 
     # Print a server-specific notice
-    print('You are player 2. Waiting for player 1 to select a stage...')
+    print('You are player 2. Waiting for player 1 to select a stage and a first move...\n')
 
     # Interact with the new connection
     game_manager.play_game(connection_socket)

@@ -22,6 +22,9 @@ REPLY_LINE_PREFIX = 'vs '
 # This prints after a player takes their turn and before the round results are received
 WAITING_FOR_OPPONENT_MESSAGE = 'Waiting for opponent'
 
+# This prints when each player is taking their turn
+TURN_PROMPT = r'What is your next move (R / P / S) if you have them, or \q to quit?' + '\n'
+
 # Keep a simple list of all moves
 ALL_MOVES = ['R', 'P', 'S']
 

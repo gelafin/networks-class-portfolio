@@ -71,6 +71,7 @@ class RPSGameManager:
         print(f'Playing on stage {stage}')
         print(f'On {stage}, you both start with the following move options:')
         print(initial_move_options)
+        print('')  # newline to separate this section
 
     def set_stage(self, stage: str):
         """
@@ -153,13 +154,12 @@ class RPSGameManager:
         # Show both players' remaining move options
         local_player = self.get_local_player()
         local_player_move_options = self.get_player_move_options(local_player)
-        print(f'\nYour remaining options:{local_player_move_options}')
+        print(f'Your remaining options:{local_player_move_options}')
 
         # Your turn--what's your move?
-        prompt = 'What is your next move (R / P / S)? '
         valid_moves = self.get_all_valid_moves(local_player)
         validation_error_message = 'No fancy stuff in this game. You have to win using the power of prediction!'
-        move_selection = get_validated_input(prompt, valid_moves, validation_error_message, True)
+        move_selection = get_validated_input(TURN_PROMPT, valid_moves, validation_error_message, True)
 
         # Record the move selection
         self.record_player_move(self.state['whose_turn'], move_selection)
@@ -310,6 +310,9 @@ class RPSGameManager:
         # Show opponent's move choice
         print(f'{REPLY_LINE_PREFIX}{self.get_opponent_move()}')
 
+        # Print a newline to separate this summary section
+        print('')
+
         # Show round winner
         winner = self.get_round_winner()
         if winner != TIE:
@@ -320,6 +323,9 @@ class RPSGameManager:
         # Show current score
         self.show_scores()
 
+        # Print a newline at the end of the summary section
+        print('')
+
         # Regenerate move choices if remaining move options have dwindled too much,
         # so the game can continue until a player quits
         local_player = self.get_local_player()
@@ -327,8 +333,9 @@ class RPSGameManager:
             for _ in range(REGEN_ITERATIONS):
                 self.regenerate_random_option(local_player)
 
-            print('You randomly regenerated some options! Here are your new options:')
+            print('\nYou randomly regenerated some options! Here are your new options:')
             print(self.state['player'][local_player]['move_choices'])
+            print('')  # Print a newline to separate this regeneration section
 
     def send_state_to_opponent(self, connection_socket: socket):
         """
