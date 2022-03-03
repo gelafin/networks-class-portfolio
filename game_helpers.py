@@ -435,6 +435,9 @@ class RPSGameManager:
                 # Reset to track the new message
                 incoming_message_payload = ''
 
+                # Tell local player to wait for opponent
+                print(WAITING_FOR_OPPONENT_MESSAGE)
+
             # Receive a packet of data from the other host
             try:
                 packet_data = receive_next_packet(connection_socket)

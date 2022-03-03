@@ -19,6 +19,9 @@ TIE = 'tie'
 # Choose a string that will distinguish replies
 REPLY_LINE_PREFIX = 'vs '
 
+# This prints after a player takes their turn and before the round results are received
+WAITING_FOR_OPPONENT_MESSAGE = 'Waiting for opponent'
+
 # Keep a simple list of all moves
 ALL_MOVES = ['R', 'P', 'S']
 
