@@ -10,12 +10,17 @@ def print_iterable_items_directly(iterable):
     Source: https://stackoverflow.com/q/54471443/14257952
     :param iterable: any iterable collection
     """
-    # Print each item
-    for item in iterable:
+    # Validate length
+    if len(iterable) < 1:
+        return
+
+    # Print each item with a comma afterward, except the last item
+    for index in range(len(iterable) - 1):
+        item = iterable[index]
         print(item, end=', ')
 
-    # Print the usual newline, to mimic built-in behavior
-    print('')
+    # Print the last item
+    print(iterable[-1])
 
 
 def get_validated_input(
