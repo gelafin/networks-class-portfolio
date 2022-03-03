@@ -1,5 +1,7 @@
 # Super LAN Multiplayer Rock-Paper-Scissors
 ## How to Play
+This game has the same rules as rock-paper-scissors, except your uses of each move are limited. You get more uses when you start to run out. The game only ends when either player quits.
+
 ### Requires Python
 1. Install Python (version >= 3.8) if you don't have it
 
