@@ -19,6 +19,9 @@ TIE = 'tie'
 # Choose a string that will distinguish replies
 REPLY_LINE_PREFIX = 'vs '
 
+# Keep a simple list of all moves
+ALL_MOVES = ['R', 'P', 'S']
+
 # Define which moves are defeated by a given move
 MOVE_PRIORITY = {
     'R': 'S',
@@ -26,8 +29,12 @@ MOVE_PRIORITY = {
     'S': 'P'
 }
 
-# The game guarantees that both players always have at least this many move options
+# The game guarantees that both players always have at least REGEN_THRESHOLD move options.
+# When it's time to regenerate a move, the game adds REGEN_QUANTITY_EACH to a random option,
+# REGEN_ITERATIONS times.
 REGEN_THRESHOLD = 3
+REGEN_QUANTITY_EACH = 1
+REGEN_ITERATIONS = 2
 
 # Define stage choices
 STAGES = {

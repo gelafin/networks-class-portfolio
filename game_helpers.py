@@ -4,6 +4,7 @@
 import copy
 import json
 import enum
+import random
 from typing import Tuple, List
 from socket_helpers import *
 from game_constants import *
@@ -133,7 +134,7 @@ class RPSGameManager:
         Returns a list of all valid move options, including quit option
         :return: list of all valid move options, including quit option
         """
-        valid_moves = [move for move in MOVE_PRIORITY]
+        valid_moves = ALL_MOVES.copy()
         valid_moves.append(QUIT_MESSAGE_PRINTABLE)
 
         return valid_moves
@@ -284,6 +285,13 @@ class RPSGameManager:
         """
         return sum(self.state['player'][player]['move_choices'].values())
 
+    def regenerate_random_option(self, player: str):
+        """
+        Regenerates a random one of the given player's options
+        """
+        random_option = random.choice(ALL_MOVES)
+        self.state['player'][player]['move_choices'][random_option] += REGEN_QUANTITY_EACH
+
     def handle_end_of_round(self):
         """
         Calculates and displays result of one round, after both players have taken their turn
@@ -307,8 +315,13 @@ class RPSGameManager:
 
         # Regenerate move choices if remaining move options have dwindled too much,
         # so the game can continue until a player quits
-        if self.count_remaining_move_options(self.get_local_player()) < REGEN_THRESHOLD:
-            print('You randomly regenerated a placeholder!')
+        local_player = self.get_local_player()
+        if self.count_remaining_move_options(local_player) < REGEN_THRESHOLD:
+            for _ in range(REGEN_ITERATIONS):
+                self.regenerate_random_option(local_player)
+
+            print('You randomly regenerated some options! Here are your new options:')
+            print(self.state['player'][local_player]['move_choices'])
 
     def send_state_to_opponent(self, connection_socket: socket):
         """
