@@ -276,6 +276,14 @@ class RPSGameManager:
         print(f'Your score: {local_player_score}')
         print(f'Opponent score: {opponent_score}')
 
+    def count_remaining_move_options(self, player: str) -> int:
+        """
+        Totals the remaining move options for a given player
+        :param player:
+        :return: sum of all remaining move options for a given player
+        """
+        return sum(self.state['player'][player]['move_choices'].values())
+
     def handle_end_of_round(self):
         """
         Calculates and displays result of one round, after both players have taken their turn
@@ -299,7 +307,8 @@ class RPSGameManager:
 
         # Regenerate move choices if remaining move options have dwindled too much,
         # so the game can continue until a player quits
-        print('(after some rounds) You randomly regenerated a placeholder!')
+        if self.count_remaining_move_options(self.get_local_player()) < REGEN_THRESHOLD:
+            print('You randomly regenerated a placeholder!')
 
     def send_state_to_opponent(self, connection_socket: socket):
         """

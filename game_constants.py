@@ -26,6 +26,9 @@ MOVE_PRIORITY = {
     'S': 'P'
 }
 
+# The game guarantees that both players always have at least this many move options
+REGEN_THRESHOLD = 3
+
 # Define stage choices
 STAGES = {
     'HEAVEN': {
