@@ -364,11 +364,7 @@ class RPSGameManager:
         new_state = self.decode_state(incoming_message)
 
         # Replace local state with incoming state, no questions asked
-        # print('DEBUG: local state is currently...')
-        # print(json.dumps(self.state, indent=1))
         self.state = new_state
-        # print('DEBUG: received NEW state from opponent and set local state to...')
-        # print(json.dumps(self.state, indent=1))
 
         # State is received after opponent updated it for their turn. Change it back to local player's turn
         self.change_turn()
