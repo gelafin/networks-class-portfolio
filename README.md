@@ -1,4 +1,7 @@
 # Super LAN Multiplayer Rock-Paper-Scissors
+## What it Looks Like
+![gameplay screenshot](https://live.staticflickr.com/65535/51915600107_19c9c9df19_o.jpg)
+
 ## How to Play
 This game has the same rules as rock-paper-scissors, except your uses of each move are limited. You get more uses when you start to run out. The game only ends when either player quits.
 
